@@ -1,0 +1,184 @@
+/* ===================================================================
+   Snipping OCR Tool - Application Global QSS Style Sheet
+   =================================================================== */
+
+/* 通用字体及文本颜色 */
+QWidget {
+    color: #E2E8F0;
+    font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+}
+
+/* -------------------------------------------------------------------
+   1. MainWindow 界面样式
+   ------------------------------------------------------------------- */
+
+QMainWindow {
+    background-color: #12131C;
+}
+
+QFrame#headerFrame {
+    background-color: #1A1C29;
+    border-bottom: 1px solid #2D3142;
+}
+
+QLabel#titleLabel {
+    color: #F8FAFC;
+}
+
+QPushButton#snipButton {
+    background-color: #4F46E5;
+    color: #FFFFFF;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 8px;
+    padding: 9px 20px;
+    border: none;
+}
+
+QPushButton#snipButton:hover {
+    background-color: #6366F1;
+}
+
+QPushButton#snipButton:disabled {
+    background-color: #2D314E;
+    color: #64748B;
+}
+
+QPushButton#settingsButton {
+    background-color: #232638;
+    color: #CBD5E1;
+    font-size: 13px;
+    font-weight: bold;
+    border-radius: 8px;
+    padding: 8px 16px;
+    border: 1px solid #334155;
+}
+
+QPushButton#settingsButton:hover {
+    background-color: #334155;
+    color: #F8FAFC;
+}
+
+QPushButton#copyButton {
+    background-color: #1E293B;
+    color: #38BDF8;
+    font-size: 13px;
+    font-weight: bold;
+    border: 1px solid #0284C7;
+    border-radius: 6px;
+    padding: 6px 14px;
+}
+
+QPushButton#copyButton:hover {
+    background-color: #0284C7;
+    color: #FFFFFF;
+}
+
+QPushButton#copyButton:disabled {
+    border-color: #334155;
+    color: #64748B;
+    background-color: #0F172A;
+}
+
+QTextEdit#resultTextEdit {
+    background-color: #161722;
+    border: 1px solid #232636;
+    border-radius: 10px;
+    color: #F1F5F9;
+    font-family: 'Consolas', 'Cascadia Code', 'Fira Code', monospace;
+    font-size: 14px;
+    padding: 14px;
+    selection-background-color: #4F46E5;
+}
+
+QLabel#panelTitle {
+    font-size: 14px;
+    font-weight: bold;
+    color: #94A3B8;
+}
+
+QLabel#charCountBadge {
+    background-color: #232638;
+    color: #A0AEC0;
+    font-size: 12px;
+    border-radius: 6px;
+    padding: 4px 10px;
+}
+
+QLabel#statusLabel {
+    color: #94A3B8;
+    font-size: 13px;
+}
+
+/* -------------------------------------------------------------------
+   2. ConfigDialog 设置对话框样式
+   ------------------------------------------------------------------- */
+
+QDialog {
+    background-color: #161722;
+}
+
+QLabel#dialogTitle {
+    font-size: 16px;
+    font-weight: bold;
+    color: #F8FAFC;
+}
+
+QLabel#fieldLabel {
+    font-size: 13px;
+    font-weight: bold;
+    color: #94A3B8;
+}
+
+QLineEdit {
+    background-color: #1E202E;
+    border: 1px solid #2D3142;
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: #F1F5F9;
+    font-size: 13px;
+}
+
+QLineEdit:focus {
+    border-color: #4F46E5;
+}
+
+QPushButton#browseBtn {
+    background-color: #25283B;
+    border: 1px solid #3B82F6;
+    color: #60A5FA;
+    border-radius: 6px;
+    padding: 7px 14px;
+    font-weight: bold;
+}
+
+QPushButton#browseBtn:hover {
+    background-color: #3B82F6;
+    color: #FFFFFF;
+}
+
+QPushButton#saveBtn {
+    background-color: #4F46E5;
+    color: #FFFFFF;
+    font-weight: bold;
+    border-radius: 6px;
+    padding: 8px 22px;
+    border: none;
+}
+
+QPushButton#saveBtn:hover {
+    background-color: #6366F1;
+}
+
+QPushButton#cancelBtn {
+    background-color: #272A3C;
+    color: #94A3B8;
+    border-radius: 6px;
+    padding: 8px 18px;
+    border: none;
+}
+
+QPushButton#cancelBtn:hover {
+    background-color: #373A50;
+    color: #F1F5F9;
+}
