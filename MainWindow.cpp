@@ -8,6 +8,7 @@
 #include <QPushButton>
 #include <QLabel>
 #include <QTextEdit>
+#include <QPlainTextEdit>
 #include <QHotkey>
 #include <QKeySequence>
 #include <QTimer>
@@ -17,6 +18,12 @@
 #include <QClipboard>
 #include <QBuffer>
 #include <QByteArray>
+#include <QProcess>
+#include <QDir>
+#include <QStandardPaths>
+#include <QFileInfo>
+#include <QMessageBox>
+#include <QDateTime>
 #include <thread>
 
 MainWindow::MainWindow(QWidget *parent)
@@ -98,11 +105,18 @@ void MainWindow::setupUi() {
     m_copyButton->setCursor(Qt::PointingHandCursor);
     m_copyButton->setEnabled(false);
 
+    m_exportDocxButton = new QPushButton("📄 导出 Docx", this);
+    m_exportDocxButton->setObjectName("exportDocxButton");
+    m_exportDocxButton->setCursor(Qt::PointingHandCursor);
+    // m_exportDocxButton->setEnabled(false);
+
     contentHeader->addWidget(contentTitle);
     contentHeader->addStretch();
+    contentHeader->addWidget(m_exportDocxButton);
+    contentHeader->addSpacing(6);
     contentHeader->addWidget(m_copyButton);
 
-    m_resultTextEdit = new QTextEdit(this);
+    m_resultTextEdit = new QPlainTextEdit(this);
     m_resultTextEdit->setObjectName("resultTextEdit");
     m_resultTextEdit->setPlaceholderText("使用快捷键或点击 「开始截屏」 按钮框选文字区域，识别结果将自动展示并复制到剪贴板...");
 
@@ -132,6 +146,7 @@ void MainWindow::setupUi() {
     connect(m_snipButton, &QPushButton::clicked, this, &MainWindow::onStartSnippingClicked);
     connect(m_settingsButton, &QPushButton::clicked, this, &MainWindow::onSettingsClicked);
     connect(m_copyButton, &QPushButton::clicked, this, &MainWindow::onCopyTextClicked);
+    connect(m_exportDocxButton, &QPushButton::clicked, this, &MainWindow::onExportDocxClicked);
 }
 
 void MainWindow::updateShortcut() {
@@ -181,13 +196,16 @@ void MainWindow::startLoadModel() {
 
 void MainWindow::onSettingsClicked() {
     ConfigDialog dialog(this);
-    dialog.setPaths(AppConfig::getModelPath(), AppConfig::getMmprojPath(), AppConfig::getPrompt(), AppConfig::getShortcut());
+    dialog.setPaths(AppConfig::getModelPath(), AppConfig::getMmprojPath(), AppConfig::getPrompt(), AppConfig::getShortcut(),
+                    AppConfig::getPandocPath(), AppConfig::getWordPath());
 
     if (dialog.exec() == QDialog::Accepted) {
         std::string newModel = dialog.getModelPath();
         std::string newMmproj = dialog.getMmprojPath();
         std::string newPrompt = dialog.getPrompt();
         std::string newShortcut = dialog.getShortcut();
+        std::string newPandoc = dialog.getPandocPath();
+        std::string newWord = dialog.getWordPath();
 
         bool modelChanged = (newModel != AppConfig::getModelPath() || newMmproj != AppConfig::getMmprojPath());
 
@@ -195,8 +213,10 @@ void MainWindow::onSettingsClicked() {
         AppConfig::setMmprojPath(newMmproj);
         AppConfig::setPrompt(newPrompt);
         AppConfig::setShortcut(newShortcut);
+        AppConfig::setPandocPath(newPandoc);
+        AppConfig::setWordPath(newWord);
 
-        // 更新 QShortcut 绑定
+        // 更新快捷键绑定
         updateShortcut();
 
         if (AppConfig::saveToFile()) {
@@ -283,6 +303,7 @@ void MainWindow::onOcrStarted() {
     m_snipButton->setEnabled(false);
     m_snipButton->setText("⌛ 识别中...");
     m_copyButton->setEnabled(false);
+    m_exportDocxButton->setEnabled(false);
     m_resultTextEdit->setPlainText("🔍 正在推理识别文本，请稍候...");
     m_charCountBadge->setText("识别中...");
 }
@@ -302,10 +323,12 @@ void MainWindow::onOcrFinished(const QString &resultText) {
         // 自动复制到系统剪贴板
         QGuiApplication::clipboard()->setText(trimmed);
         m_copyButton->setEnabled(true);
+        m_exportDocxButton->setEnabled(true);
         m_charCountBadge->setText(QString("%1 字符").arg(trimmed.length()));
         m_statusLabel->setText("✅ OCR 识别完成！文本已自动复制到剪贴板");
     } else {
         m_copyButton->setEnabled(false);
+        m_exportDocxButton->setEnabled(false);
         m_charCountBadge->setText("0 字符");
         m_statusLabel->setText("✅ OCR 识别完成！未检测到文字内容");
     }
@@ -315,6 +338,7 @@ void MainWindow::onOcrFailed(const QString &errorMessage) {
     m_snipButton->setEnabled(true);
     m_snipButton->setText("✂️  开始截屏");
     m_copyButton->setEnabled(false);
+    m_exportDocxButton->setEnabled(false);
 
     m_resultTextEdit->setPlainText(QString("❌ OCR 识别失败:\n%1").arg(errorMessage));
     m_charCountBadge->setText("识别失败");
@@ -330,5 +354,74 @@ void MainWindow::onCopyTextClicked() {
         QTimer::singleShot(1500, this, [this]() {
             m_copyButton->setText("📋 复制文本");
         });
+    }
+}
+
+void MainWindow::onExportDocxClicked() {
+    QString text = m_resultTextEdit->toPlainText().trimmed();
+    if (text.isEmpty()) {
+        QMessageBox::warning(this, "导出失败", "文本内容为空，无法导出。");
+        return;
+    }
+
+    // 1. 将文本写入临时 Markdown 文件
+    QString tempDir = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
+    QString timestamp = QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss");
+    QString mdPath = tempDir + "/snipping_ocr_" + timestamp + ".md";
+    QString docxPath = tempDir + "/snipping_ocr_" + timestamp + ".docx";
+
+    QFile mdFile(mdPath);
+    if (!mdFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QMessageBox::critical(this, "导出失败", "无法创建临时 Markdown 文件：\n" + mdPath);
+        return;
+    }
+    QTextStream out(&mdFile);
+    out.setEncoding(QStringConverter::Utf8);
+    out << text;
+    mdFile.close();
+
+    // 2. 调用 pandoc 将 Markdown 转换为 Docx
+    m_statusLabel->setText("⏳ 正在调用 pandoc 生成 Docx...");
+    m_exportDocxButton->setEnabled(false);
+
+    QProcess *pandocProcess = new QProcess(this);
+    pandocProcess->setProgram(QString::fromStdString(AppConfig::getPandocPath()));
+    pandocProcess->setArguments({mdPath, "-o", docxPath});
+
+    connect(pandocProcess, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+            this, [this, pandocProcess, mdPath, docxPath](int exitCode, QProcess::ExitStatus) {
+        pandocProcess->deleteLater();
+        QFile::remove(mdPath);
+        m_exportDocxButton->setEnabled(true);
+
+        if (exitCode != 0) {
+            QString errMsg = pandocProcess->readAllStandardError();
+            m_statusLabel->setText("❌ pandoc 转换失败");
+            QMessageBox::critical(this, "导出失败",
+                "pandoc 转换失败（请确认已安装 pandoc 并添加到 PATH 环境变量）。\n\n错误信息：\n" + errMsg);
+            return;
+        }
+
+        m_statusLabel->setText("✅ Docx 文件已生成，正在用 Word 打开...");
+
+        // 3. 使用配置的 WINWORD.EXE 打开生成的 Docx 文件
+        QString wordExe = QString::fromStdString(AppConfig::getWordPath());
+        // Word 需要 /f 参数，且路径中使用反斜杠
+        QString docxNative = QDir::toNativeSeparators(docxPath);
+        if (QFileInfo::exists(wordExe)) {
+            QProcess::startDetached(wordExe, {"/f", docxNative});
+        } else {
+            m_statusLabel->setText(QString("❌ 未找到 Word 可执行文件，请在设置中配置正确路径：%1").arg(wordExe));
+        }
+    });
+
+    pandocProcess->start();
+    if (!pandocProcess->waitForStarted(3000)) {
+        pandocProcess->deleteLater();
+        QFile::remove(mdPath);
+        m_exportDocxButton->setEnabled(true);
+        m_statusLabel->setText("❌ 启动 pandoc 失败");
+        QMessageBox::critical(this, "导出失败",
+            "无法启动 pandoc。\n请确认已安装 pandoc：https://pandoc.org/installing.html\n并确保 pandoc 已添加到系统 PATH 环境变量。");
     }
 }

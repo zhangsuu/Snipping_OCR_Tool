@@ -10,6 +10,8 @@ namespace AppConfig {
     extern const std::string DEFAULT_PROMPT;
     extern const std::string DEFAULT_SHORTCUT;
     extern const std::string DEFAULT_CONFIG_FILENAME;
+    extern const std::string DEFAULT_PANDOC_PATH;
+    extern const std::string DEFAULT_WORD_PATH;
 
     // 配置文件路径设置与获取
     void setConfigFilePath(const std::string &filePath);
@@ -20,12 +22,16 @@ namespace AppConfig {
     void setMmprojPath(const std::string &path);
     void setPrompt(const std::string &p);
     void setShortcut(const std::string &s);
+    void setPandocPath(const std::string &path);
+    void setWordPath(const std::string &path);
 
     // 获取各个配置项（非空时返回设置值，若为空则返回对应的默认值）
     std::string getModelPath();
     std::string getMmprojPath();
     std::string getPrompt();
     std::string getShortcut();
+    std::string getPandocPath();
+    std::string getWordPath();
 
     // 加载与保存配置（若未指定 path 则默认使用全局配置路径）
     bool load(const std::string &filePath = "");

@@ -4,6 +4,8 @@
 #include <QMainWindow>
 #include <QPixmap>
 #include <memory>
+#include <QPlainTextEdit>
+
 #include "AppConfig.h"
 
 class QLabel;
@@ -39,6 +41,7 @@ private slots:
     void onOcrFinished(const QString &resultText);
     void onOcrFailed(const QString &errorMessage);
     void onCopyTextClicked();
+    void onExportDocxClicked();
 
 private:
     void setupUi();
@@ -48,7 +51,8 @@ private:
     QPushButton *m_snipButton = nullptr;
     QPushButton *m_settingsButton = nullptr;
     QPushButton *m_copyButton = nullptr;
-    QTextEdit *m_resultTextEdit = nullptr;
+    QPushButton *m_exportDocxButton = nullptr;
+    QPlainTextEdit *m_resultTextEdit = nullptr;
     QLabel *m_statusLabel = nullptr;
     QLabel *m_charCountBadge = nullptr;
 

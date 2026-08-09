@@ -10,12 +10,16 @@ const std::string DEFAULT_MMPROJ_PATH = "D:/LearnWorkSpace/model/enginil_dots.mo
 const std::string DEFAULT_PROMPT = "Transcribe all text from this image.";
 const std::string DEFAULT_SHORTCUT = "Alt+A";
 const std::string DEFAULT_CONFIG_FILENAME = "config.json";
+const std::string DEFAULT_PANDOC_PATH = "C:/Program Files/Pandoc/pandoc.exe";
+const std::string DEFAULT_WORD_PATH = "C:/Program Files/Microsoft Office/root/Office16/WINWORD.EXE";
 
 namespace {
     std::string g_modelPath = DEFAULT_MODEL_PATH;
     std::string g_mmprojPath = DEFAULT_MMPROJ_PATH;
     std::string g_prompt = DEFAULT_PROMPT;
     std::string g_shortcut = DEFAULT_SHORTCUT;
+    std::string g_pandocPath = DEFAULT_PANDOC_PATH;
+    std::string g_wordPath = DEFAULT_WORD_PATH;
     std::string g_configFilePath;
 }
 
@@ -49,6 +53,14 @@ void setShortcut(const std::string &s) {
     g_shortcut = s;
 }
 
+void setPandocPath(const std::string &path) {
+    g_pandocPath = path;
+}
+
+void setWordPath(const std::string &path) {
+    g_wordPath = path;
+}
+
 std::string getModelPath() {
     return g_modelPath.empty() ? DEFAULT_MODEL_PATH : g_modelPath;
 }
@@ -65,12 +77,22 @@ std::string getShortcut() {
     return g_shortcut.empty() ? DEFAULT_SHORTCUT : g_shortcut;
 }
 
+std::string getPandocPath() {
+    return g_pandocPath.empty() ? DEFAULT_PANDOC_PATH : g_pandocPath;
+}
+
+std::string getWordPath() {
+    return g_wordPath.empty() ? DEFAULT_WORD_PATH : g_wordPath;
+}
+
 nlohmann::json toJson() {
     return nlohmann::json{
         {"model_path", g_modelPath},
         {"mmproj_path", g_mmprojPath},
         {"prompt", g_prompt},
-        {"shortcut", g_shortcut}
+        {"shortcut", g_shortcut},
+        {"pandoc_path", g_pandocPath},
+        {"word_path", g_wordPath}
     };
 }
 
@@ -86,6 +108,12 @@ void fromJson(const nlohmann::json &j) {
     }
     if (j.contains("shortcut") && j["shortcut"].is_string()) {
         g_shortcut = j["shortcut"].get<std::string>();
+    }
+    if (j.contains("pandoc_path") && j["pandoc_path"].is_string()) {
+        g_pandocPath = j["pandoc_path"].get<std::string>();
+    }
+    if (j.contains("word_path") && j["word_path"].is_string()) {
+        g_wordPath = j["word_path"].get<std::string>();
     }
 }
 
