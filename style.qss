@@ -80,7 +80,28 @@ QPushButton#copyButton:disabled {
     background-color: #0F172A;
 }
 
-QTextEdit#resultTextEdit {
+QPushButton#exportDocxButton {
+    background-color: #1E293B;
+    color: #34D399;
+    font-size: 13px;
+    font-weight: bold;
+    border: 1px solid #059669;
+    border-radius: 6px;
+    padding: 6px 14px;
+}
+
+QPushButton#exportDocxButton:hover {
+    background-color: #059669;
+    color: #FFFFFF;
+}
+
+QPushButton#exportDocxButton:disabled {
+    border-color: #334155;
+    color: #64748B;
+    background-color: #0F172A;
+}
+
+QPlainTextEdit#resultTextEdit {
     background-color: #161722;
     border: 1px solid #232636;
     border-radius: 10px;

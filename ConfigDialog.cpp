@@ -15,7 +15,7 @@ ConfigDialog::ConfigDialog(QWidget *parent)
 
 void ConfigDialog::setupUi() {
     setWindowTitle("⚙️ OCR 模型与系统设置");
-    resize(580, 380);
+    resize(600, 520);
 
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(24, 20, 24, 20);
@@ -89,7 +89,45 @@ void ConfigDialog::setupUi() {
 
     mainLayout->addLayout(shortcutLayout);
 
-    // 5. 底部控制按钮
+    // 5. Pandoc 可执行文件路径
+    QVBoxLayout *pandocLayout = new QVBoxLayout();
+    QLabel *pandocLabel = new QLabel("Pandoc 可执行文件路径:", this);
+    pandocLabel->setObjectName("fieldLabel");
+
+    QHBoxLayout *pandocInputLayout = new QHBoxLayout();
+    m_pandocPathEdit = new QLineEdit(this);
+    m_pandocPathEdit->setPlaceholderText(QString::fromStdString(AppConfig::DEFAULT_PANDOC_PATH));
+    m_browsePandocBtn = new QPushButton("📂 浏览...", this);
+    m_browsePandocBtn->setObjectName("browseBtn");
+    m_browsePandocBtn->setCursor(Qt::PointingHandCursor);
+
+    pandocInputLayout->addWidget(m_pandocPathEdit);
+    pandocInputLayout->addWidget(m_browsePandocBtn);
+    pandocLayout->addWidget(pandocLabel);
+    pandocLayout->addLayout(pandocInputLayout);
+
+    mainLayout->addLayout(pandocLayout);
+
+    // 6. Word 可执行文件路径
+    QVBoxLayout *wordLayout = new QVBoxLayout();
+    QLabel *wordLabel = new QLabel("Microsoft Word (WINWORD.EXE) 路径:", this);
+    wordLabel->setObjectName("fieldLabel");
+
+    QHBoxLayout *wordInputLayout = new QHBoxLayout();
+    m_wordPathEdit = new QLineEdit(this);
+    m_wordPathEdit->setPlaceholderText(QString::fromStdString(AppConfig::DEFAULT_WORD_PATH));
+    m_browseWordBtn = new QPushButton("📂 浏览...", this);
+    m_browseWordBtn->setObjectName("browseBtn");
+    m_browseWordBtn->setCursor(Qt::PointingHandCursor);
+
+    wordInputLayout->addWidget(m_wordPathEdit);
+    wordInputLayout->addWidget(m_browseWordBtn);
+    wordLayout->addWidget(wordLabel);
+    wordLayout->addLayout(wordInputLayout);
+
+    mainLayout->addLayout(wordLayout);
+
+    // 7. 底部控制按鈕钮
     QHBoxLayout *btnLayout = new QHBoxLayout();
     btnLayout->addStretch();
 
@@ -108,15 +146,20 @@ void ConfigDialog::setupUi() {
 
     connect(m_browseModelBtn, &QPushButton::clicked, this, &ConfigDialog::onBrowseModel);
     connect(m_browseMmprojBtn, &QPushButton::clicked, this, &ConfigDialog::onBrowseMmproj);
+    connect(m_browsePandocBtn, &QPushButton::clicked, this, &ConfigDialog::onBrowsePandoc);
+    connect(m_browseWordBtn, &QPushButton::clicked, this, &ConfigDialog::onBrowseWord);
     connect(m_saveBtn, &QPushButton::clicked, this, &QDialog::accept);
     connect(m_cancelBtn, &QPushButton::clicked, this, &QDialog::reject);
 }
 
-void ConfigDialog::setPaths(const std::string &modelPath, const std::string &mmprojPath, const std::string &prompt, const std::string &shortcut) {
+void ConfigDialog::setPaths(const std::string &modelPath, const std::string &mmprojPath, const std::string &prompt, const std::string &shortcut,
+                             const std::string &pandocPath, const std::string &wordPath) {
     m_modelPathEdit->setText(QString::fromStdString(modelPath));
     m_mmprojPathEdit->setText(QString::fromStdString(mmprojPath));
     m_promptEdit->setText(QString::fromStdString(prompt));
     m_shortcutEdit->setText(QString::fromStdString(shortcut));
+    m_pandocPathEdit->setText(QString::fromStdString(pandocPath));
+    m_wordPathEdit->setText(QString::fromStdString(wordPath));
 }
 
 std::string ConfigDialog::getModelPath() const {
@@ -135,6 +178,14 @@ std::string ConfigDialog::getShortcut() const {
     return m_shortcutEdit->text().trimmed().toStdString();
 }
 
+std::string ConfigDialog::getPandocPath() const {
+    return m_pandocPathEdit->text().trimmed().toStdString();
+}
+
+std::string ConfigDialog::getWordPath() const {
+    return m_wordPathEdit->text().trimmed().toStdString();
+}
+
 void ConfigDialog::onBrowseModel() {
     QString file = QFileDialog::getOpenFileName(this, "选择主模型文件", m_modelPathEdit->text(), "GGUF 模型文件 (*.gguf);;所有文件 (*.*)");
     if (!file.isEmpty()) {
@@ -143,8 +194,22 @@ void ConfigDialog::onBrowseModel() {
 }
 
 void ConfigDialog::onBrowseMmproj() {
-    QString file = QFileDialog::getOpenFileName(this, "选择视觉 mmproj 模型文件", m_mmprojPathEdit->text(), "GGUF 模型文件 (*.gguf);;所有文件 (*.*)");
+    QString file = QFileDialog::getOpenFileName(this, "选择视觉 mmproj 模型文件", m_mmprojPathEdit->text(), "GGUF 模型文件 (*.gguf);;所有文件 (*.*)" );
     if (!file.isEmpty()) {
         m_mmprojPathEdit->setText(file);
+    }
+}
+
+void ConfigDialog::onBrowsePandoc() {
+    QString file = QFileDialog::getOpenFileName(this, "选择 Pandoc 可执行文件", m_pandocPathEdit->text(), "可执行文件 (*.exe);;所有文件 (*.*)" );
+    if (!file.isEmpty()) {
+        m_pandocPathEdit->setText(file);
+    }
+}
+
+void ConfigDialog::onBrowseWord() {
+    QString file = QFileDialog::getOpenFileName(this, "选择 Microsoft Word 可执行文件", m_wordPathEdit->text(), "可执行文件 (*.exe);;所有文件 (*.*)" );
+    if (!file.isEmpty()) {
+        m_wordPathEdit->setText(file);
     }
 }
