@@ -60,19 +60,29 @@ include_directories("${LLAMACPP_DIR}/include")
 include_directories("${LLAMACPP_DIR}/ggml/include")
 include_directories("${LLAMACPP_DIR}/tools/mtmd")
 
+# ===== 源文件目录 =====
+set(SRC_DIR  ${CMAKE_CURRENT_SOURCE_DIR}/src)
+set(CORE_DIR ${SRC_DIR}/core)
+set(UI_DIR   ${SRC_DIR}/ui)
+set(RES_DIR  ${SRC_DIR}/resources)
+
+# 让各子目录的头文件互相可见（#include 写法无需修改）
+include_directories(${CORE_DIR})
+include_directories(${UI_DIR})
+
 add_executable(Snipping_OCR_Tool
-    main.cpp
-    MainWindow.h
-    MainWindow.cpp
-    SnipperWidget.h
-    SnipperWidget.cpp
-    OcrEngine.h
-    OcrEngine.cpp
-    AppConfig.h
-    AppConfig.cpp
-    ConfigDialog.h
-    ConfigDialog.cpp
-    resources.qrc
+    ${SRC_DIR}/main.cpp
+    ${UI_DIR}/MainWindow.h
+    ${UI_DIR}/MainWindow.cpp
+    ${UI_DIR}/SnipperWidget.h
+    ${UI_DIR}/SnipperWidget.cpp
+    ${UI_DIR}/ConfigDialog.h
+    ${UI_DIR}/ConfigDialog.cpp
+    ${CORE_DIR}/OcrEngine.h
+    ${CORE_DIR}/OcrEngine.cpp
+    ${CORE_DIR}/AppConfig.h
+    ${CORE_DIR}/AppConfig.cpp
+    ${RES_DIR}/resources.qrc
 )
 
 target_link_libraries(Snipping_OCR_Tool PRIVATE
