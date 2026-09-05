@@ -24,6 +24,7 @@
 #include <QFileInfo>
 #include <QMessageBox>
 #include <QDateTime>
+#include <QRegularExpression>
 #include <thread>
 
 MainWindow::MainWindow(QWidget *parent)
@@ -105,6 +106,12 @@ void MainWindow::setupUi() {
     m_copyButton->setCursor(Qt::PointingHandCursor);
     m_copyButton->setEnabled(false);
 
+    m_removeSpacesButton = new QPushButton("🧹 去除中英空格", this);
+    m_removeSpacesButton->setObjectName("removeSpacesButton");
+    m_removeSpacesButton->setToolTip("删除中文字符与英文、数字之间的空格");
+    m_removeSpacesButton->setCursor(Qt::PointingHandCursor);
+    m_removeSpacesButton->setEnabled(false);
+
     m_exportDocxButton = new QPushButton("📄 导出 Docx", this);
     m_exportDocxButton->setObjectName("exportDocxButton");
     m_exportDocxButton->setCursor(Qt::PointingHandCursor);
@@ -112,6 +119,8 @@ void MainWindow::setupUi() {
 
     contentHeader->addWidget(contentTitle);
     contentHeader->addStretch();
+    contentHeader->addWidget(m_removeSpacesButton);
+    contentHeader->addSpacing(6);
     contentHeader->addWidget(m_exportDocxButton);
     contentHeader->addSpacing(6);
     contentHeader->addWidget(m_copyButton);
@@ -145,6 +154,7 @@ void MainWindow::setupUi() {
 
     connect(m_snipButton, &QPushButton::clicked, this, &MainWindow::onStartSnippingClicked);
     connect(m_settingsButton, &QPushButton::clicked, this, &MainWindow::onSettingsClicked);
+    connect(m_removeSpacesButton, &QPushButton::clicked, this, &MainWindow::onRemoveSpacesClicked);
     connect(m_copyButton, &QPushButton::clicked, this, &MainWindow::onCopyTextClicked);
     connect(m_exportDocxButton, &QPushButton::clicked, this, &MainWindow::onExportDocxClicked);
 }
@@ -304,6 +314,7 @@ void MainWindow::onOcrStarted() {
     m_snipButton->setText("⌛ 识别中...");
     m_copyButton->setEnabled(false);
     m_exportDocxButton->setEnabled(false);
+    m_removeSpacesButton->setEnabled(false);
     m_resultTextEdit->setPlainText("🔍 正在推理识别文本，请稍候...");
     m_charCountBadge->setText("识别中...");
 }
@@ -324,11 +335,13 @@ void MainWindow::onOcrFinished(const QString &resultText) {
         QGuiApplication::clipboard()->setText(trimmed);
         m_copyButton->setEnabled(true);
         m_exportDocxButton->setEnabled(true);
+        m_removeSpacesButton->setEnabled(true);
         m_charCountBadge->setText(QString("%1 字符").arg(trimmed.length()));
         m_statusLabel->setText("✅ OCR 识别完成！文本已自动复制到剪贴板");
     } else {
         m_copyButton->setEnabled(false);
         m_exportDocxButton->setEnabled(false);
+        m_removeSpacesButton->setEnabled(false);
         m_charCountBadge->setText("0 字符");
         m_statusLabel->setText("✅ OCR 识别完成！未检测到文字内容");
     }
@@ -339,6 +352,7 @@ void MainWindow::onOcrFailed(const QString &errorMessage) {
     m_snipButton->setText("✂️  开始截屏");
     m_copyButton->setEnabled(false);
     m_exportDocxButton->setEnabled(false);
+    m_removeSpacesButton->setEnabled(false);
 
     m_resultTextEdit->setPlainText(QString("❌ OCR 识别失败:\n%1").arg(errorMessage));
     m_charCountBadge->setText("识别失败");
@@ -423,5 +437,29 @@ void MainWindow::onExportDocxClicked() {
         m_statusLabel->setText("❌ 启动 pandoc 失败");
         QMessageBox::critical(this, "导出失败",
             "无法启动 pandoc。\n请确认已安装 pandoc：https://pandoc.org/installing.html\n并确保 pandoc 已添加到系统 PATH 环境变量。");
+    }
+}
+
+void MainWindow::onRemoveSpacesClicked() {
+    QString text = m_resultTextEdit->toPlainText();
+    if (text.isEmpty()) {
+        return;
+    }
+
+    // 1. 删除中文字符与英文字符/数字之间的空格 (中文 + 空格 + 英文/数字)
+    static const QRegularExpression regex1(QStringLiteral("([\\p{Han}])[\\h]+([a-zA-Z0-9])"));
+    // 2. 删除英文字符/数字与中文字符之间的空格 (英文/数字 + 空格 + 中文)
+    static const QRegularExpression regex2(QStringLiteral("([a-zA-Z0-9])[\\h]+([\\p{Han}])"));
+
+    QString processed = text;
+    processed.replace(regex1, QStringLiteral("\\1\\2"));
+    processed.replace(regex2, QStringLiteral("\\1\\2"));
+
+    if (processed != text) {
+        m_resultTextEdit->setPlainText(processed);
+        m_charCountBadge->setText(QString("%1 字符").arg(processed.length()));
+        m_statusLabel->setText("✅ 已去除中文字符与英文、数字之间的空格");
+    } else {
+        m_statusLabel->setText("ℹ️ 未发现需要去除的中英/数字空格");
     }
 }

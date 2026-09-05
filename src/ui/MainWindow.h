@@ -42,6 +42,7 @@ private slots:
     void onOcrFailed(const QString &errorMessage);
     void onCopyTextClicked();
     void onExportDocxClicked();
+    void onRemoveSpacesClicked();
 
 private:
     void setupUi();
@@ -52,6 +53,7 @@ private:
     QPushButton *m_settingsButton = nullptr;
     QPushButton *m_copyButton = nullptr;
     QPushButton *m_exportDocxButton = nullptr;
+    QPushButton *m_removeSpacesButton = nullptr;
     QPlainTextEdit *m_resultTextEdit = nullptr;
     QLabel *m_statusLabel = nullptr;
     QLabel *m_charCountBadge = nullptr;

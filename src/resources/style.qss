@@ -101,6 +101,27 @@ QPushButton#exportDocxButton:disabled {
     background-color: #0F172A;
 }
 
+QPushButton#removeSpacesButton {
+    background-color: #1E293B;
+    color: #F59E0B;
+    font-size: 13px;
+    font-weight: bold;
+    border: 1px solid #D97706;
+    border-radius: 6px;
+    padding: 6px 14px;
+}
+
+QPushButton#removeSpacesButton:hover {
+    background-color: #D97706;
+    color: #FFFFFF;
+}
+
+QPushButton#removeSpacesButton:disabled {
+    border-color: #334155;
+    color: #64748B;
+    background-color: #0F172A;
+}
+
 QPlainTextEdit#resultTextEdit {
     background-color: #161722;
     border: 1px solid #232636;
